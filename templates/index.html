@@ -297,7 +297,6 @@
             <button class="btn btn-primary" onclick="openModal()">+ Додати фільм</button>
         </div>
 
-        <!-- Modal -->
         <div class="modal" id="filmModal">
             <div class="modal-content">
                 <h2 id="modalTitle" style="margin-top:0;">Додати фільм</h2>
@@ -328,7 +327,7 @@
         </div>
 
         <div class="movies-list" id="moviesList">
-            <!-- Сюди завантажуватимуться фільми -->
+
             <p style="text-align: center; color: var(--text-muted);">Завантаження...</p>
         </div>
     </div>
@@ -337,14 +336,14 @@
         let searchTimeout;
         let currentFilms = [];
 
-        // Ініціалізація сторінки
+
         document.addEventListener('DOMContentLoaded', () => {
             fetchStats();
             fetchCategories();
             fetchFilms();
         });
 
-        // Завантаження статистики
+
         async function fetchStats() {
             try {
                 const response = await fetch('/api/stats');
@@ -357,7 +356,7 @@
             }
         }
 
-        // Завантаження категорій для селекта
+
         async function fetchCategories() {
             try {
                 const response = await fetch('/api/categories');
@@ -382,7 +381,7 @@
             }
         }
 
-        // Затримка пошуку, щоб не спамити API при введенні тексту
+
         function debounceFetch() {
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
@@ -390,7 +389,6 @@
             }, 500);
         }
 
-        // Основна функція для завантаження фільмів
         async function fetchFilms() {
             const listContainer = document.getElementById('moviesList');
             const search = document.getElementById('searchInput').value;
@@ -399,7 +397,7 @@
             listContainer.innerHTML = '<p style="text-align: center; color: var(--text-muted);">Завантаження...</p>';
 
             try {
-                // Будуємо URL з параметрами запиту (query params)
+
                 let url = '/api/films?per_page=50';
                 if (search) url += `&search=${encodeURIComponent(search)}`;
                 if (categoryId) url += `&category_id=${categoryId}`;
@@ -415,11 +413,10 @@
                     return;
                 }
 
-                // Рендеринг кожного фільму
                 result.data.forEach((film, index) => {
                     const card = document.createElement('div');
                     card.className = 'movie-card';
-                    // Затримка анімації для ефекту появи
+
                     card.style.animationDelay = `${index * 0.1}s`;
 
                     card.innerHTML = `
@@ -444,7 +441,6 @@
             }
         }
 
-        // --- CRUD Логіка ---
         const modal = document.getElementById('filmModal');
 
         function openModal(film = null) {
