@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pizza Shop API - Фільми</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --surface: #1e293b;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --success: #10b981;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 2rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #60a5fa, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .stats-cards {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            justify-content: center;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            text-align: center;
+            min-width: 150px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .movies-list {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .movie-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            animation: slideIn 0.5s ease-out forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .movie-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.1);
+        }
+
+        .movie-info h3 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.25rem;
+        }
+
+        .movie-meta {
+            display: flex;
+            gap: 1rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .movie-meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .rating-badge {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            align-items: center;
+        }
+
+        select, input {
+            background: var(--bg-color);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        select:focus, input:focus {
+            border-color: var(--primary);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: var(--surface);
+            padding: 2rem;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid var(--border);
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+        }
+
+        .modal.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover { background: var(--primary-hover); }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover { background: #dc2626; }
+        
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+        }
+        .btn-secondary:hover { background: rgba(255,255,255,0.05); }
+
+        .card-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Каталог Фільмів</h1>
+        </header>
+
+        <div class="stats-cards" id="statsContainer">
+            <div class="stat-card">
+                <div class="stat-value" id="totalFilms">-</div>
+                <div class="stat-label">Всього фільмів</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avgRating">-</div>
+                <div class="stat-label">Середній рейтинг</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="header-actions">
+                <input type="text" id="searchInput" placeholder="Пошук фільмів..." onkeyup="debounceFetch()">
+                <select id="categorySelect" onchange="fetchFilms()">
+                    <option value="">Всі категорії</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" onclick="openModal()">+ Додати фільм</button>
+        </div>
+
+        <!-- Modal -->
+        <div class="modal" id="filmModal">
+            <div class="modal-content">
+                <h2 id="modalTitle" style="margin-top:0;">Додати фільм</h2>
+                <form id="filmForm" onsubmit="saveFilm(event)">
+                    <input type="hidden" id="filmId">
+                    <div class="form-group">
+                        <label>Назва</label>
+                        <input type="text" id="filmTitle" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Рік</label>
+                        <input type="number" id="filmYear" required min="1900" max="2100">
+                    </div>
+                    <div class="form-group">
+                        <label>Рейтинг</label>
+                        <input type="number" id="filmRating" required min="0" max="10" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label>Категорія</label>
+                        <select id="filmCategory" required></select>
+                    </div>
+                    <div style="display:flex; gap:1rem; justify-content:flex-end; margin-top:1.5rem;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal()">Скасувати</button>
+                        <button type="submit" class="btn btn-primary">Зберегти</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="movies-list" id="moviesList">
+            <!-- Сюди завантажуватимуться фільми -->
+            <p style="text-align: center; color: var(--text-muted);">Завантаження...</p>
+        </div>
+    </div>
+
+    <script>
+        let searchTimeout;
+        let currentFilms = [];
+
+        // Ініціалізація сторінки
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchStats();
+            fetchCategories();
+            fetchFilms();
+        });
+
+        // Завантаження статистики
+        async function fetchStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const data = await response.json();
+                
+                document.getElementById('totalFilms').innerText = data.total_films;
+                document.getElementById('avgRating').innerText = data.average_rating;
+            } catch (error) {
+                console.error("Помилка завантаження статистики:", error);
+            }
+        }
+
+        // Завантаження категорій для селекта
+        async function fetchCategories() {
+            try {
+                const response = await fetch('/api/categories');
+                const result = await response.json();
+                
+                const select = document.getElementById('categorySelect');
+                const formSelect = document.getElementById('filmCategory');
+                
+                result.data.forEach(cat => {
+                    const option = document.createElement('option');
+                    option.value = cat.id;
+                    option.textContent = cat.name;
+                    select.appendChild(option);
+                    
+                    const option2 = document.createElement('option');
+                    option2.value = cat.id;
+                    option2.textContent = cat.name;
+                    formSelect.appendChild(option2);
+                });
+            } catch (error) {
+                console.error("Помилка завантаження категорій:", error);
+            }
+        }
+
+        // Затримка пошуку, щоб не спамити API при введенні тексту
+        function debounceFetch() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                fetchFilms();
+            }, 500);
+        }
+
+        // Основна функція для завантаження фільмів
+        async function fetchFilms() {
+            const listContainer = document.getElementById('moviesList');
+            const search = document.getElementById('searchInput').value;
+            const categoryId = document.getElementById('categorySelect').value;
+            
+            listContainer.innerHTML = '<p style="text-align: center; color: var(--text-muted);">Завантаження...</p>';
+
+            try {
+                // Будуємо URL з параметрами запиту (query params)
+                let url = '/api/films?per_page=50';
+                if (search) url += `&search=${encodeURIComponent(search)}`;
+                if (categoryId) url += `&category_id=${categoryId}`;
+
+                const response = await fetch(url);
+                const result = await response.json();
+                
+                currentFilms = result.data;
+                listContainer.innerHTML = '';
+                
+                if (result.data.length === 0) {
+                    listContainer.innerHTML = '<p style="text-align: center; color: var(--text-muted);">Нічого не знайдено</p>';
+                    return;
+                }
+
+                // Рендеринг кожного фільму
+                result.data.forEach((film, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'movie-card';
+                    // Затримка анімації для ефекту появи
+                    card.style.animationDelay = `${index * 0.1}s`;
+
+                    card.innerHTML = `
+                        <div class="movie-info" style="flex: 1;">
+                            <h3>${film.title}</h3>
+                            <div class="movie-meta">
+                                <span>📅 Рік: ${film.year}</span>
+                                <span>🏷️ Категорія ID: ${film.category_id}</span>
+                            </div>
+                            <div class="card-actions">
+                                <button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" onclick="editFilm(${film.id})">Редагувати</button>
+                                <button class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" onclick="deleteFilm(${film.id})">Видалити</button>
+                            </div>
+                        </div>
+                        <div class="rating-badge">★ ${film.rating.toFixed(1)}</div>
+                    `;
+                    listContainer.appendChild(card);
+                });
+            } catch (error) {
+                console.error("Помилка завантаження фільмів:", error);
+                listContainer.innerHTML = '<p style="text-align: center; color: #ef4444;">Помилка завантаження даних</p>';
+            }
+        }
+
+        // --- CRUD Логіка ---
+        const modal = document.getElementById('filmModal');
+
+        function openModal(film = null) {
+            const isEdit = film && film.id;
+            document.getElementById('modalTitle').innerText = isEdit ? 'Редагувати фільм' : 'Додати фільм';
+            
+            document.getElementById('filmId').value = isEdit ? film.id : '';
+            document.getElementById('filmTitle').value = isEdit ? film.title : '';
+            document.getElementById('filmYear').value = isEdit ? film.year : '';
+            document.getElementById('filmRating').value = isEdit ? film.rating : '';
+            document.getElementById('filmCategory').value = isEdit ? film.category_id : '';
+            
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            modal.classList.remove('active');
+        }
+        
+        function editFilm(id) {
+            const film = currentFilms.find(f => f.id === id);
+            if (film) openModal(film);
+        }
+
+        async function saveFilm(e) {
+            e.preventDefault();
+            
+            const id = document.getElementById('filmId').value;
+            const payload = {
+                title: document.getElementById('filmTitle').value,
+                year: parseInt(document.getElementById('filmYear').value),
+                rating: parseFloat(document.getElementById('filmRating').value),
+                category_id: parseInt(document.getElementById('filmCategory').value)
+            };
+
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `/api/films/${id}` : '/api/films';
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (response.ok) {
+                    closeModal();
+                    fetchFilms();
+                    fetchStats();
+                } else {
+                    alert('Помилка збереження!');
+                }
+            } catch (error) {
+                console.error("Помилка:", error);
+            }
+        }
+
+        async function deleteFilm(id) {
+            if (!confirm('Ви впевнені, що хочете видалити цей фільм?')) return;
+            
+            try {
+                const response = await fetch(`/api/films/${id}`, { method: 'DELETE' });
+                if (response.ok) {
+                    fetchFilms();
+                    fetchStats();
+                } else {
+                    alert('Помилка видалення!');
+                }
+            } catch (error) {
+                console.error("Помилка:", error);
+            }
+        }
+    </script>
+</body>
+</html>
